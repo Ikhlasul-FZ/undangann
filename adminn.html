@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Undangan Pernikahan</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        .guest-list {
+            margin-top: 30px;
+        }
+        .guest-item {
+            background: #f9f9f9;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .guest-info {
+            flex-grow: 1;
+        }
+        .guest-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .copy-btn {
+            background: #2196F3;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+        .alert-success {
+            background: #dff0d8;
+            color: #3c763d;
+            border: 1px solid #d6e9c6;
+        }
+        .alert-error {
+            background: #f2dede;
+            color: #a94442;
+            border: 1px solid #ebccd1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Kelola Daftar Tamu</h1>
+        
+        <div id="alert" class="alert"></div>
+
+        <div class="form-group">
+            <label for="guestName">Nama Tamu:</label>
+            <input type="text" id="guestName" placeholder="Masukkan Nama Tamu">
+        </div>
+
+        <button onclick="addGuest()">Tambah Tamu</button>
+
+        <div class="guest-list" id="guestList">
+            <!-- Daftar tamu akan ditampilkan di sini -->
+        </div>
+    </div>
+
+    <script>
+        // Mengambil data tamu dari localStorage
+        let guests = JSON.parse(localStorage.getItem('guests')) || [];
+
+        // Menampilkan daftar tamu
+        function displayGuests() {
+            const guestList = document.getElementById('guestList');
+            guestList.innerHTML = '';
+
+            guests.forEach((guest, index) => {
+                const guestItem = document.createElement('div');
+                guestItem.className = 'guest-item';
+                
+                const invitationUrl = `https://ikhlasul-fz.github.io/undangann/?to=${encodeURIComponent(guest.name)}`;
+                
+                guestItem.innerHTML = `
+                    <div class="guest-info">
+                        <strong>${guest.name}</strong>
+                    </div>
+                    <div class="guest-actions">
+                        <button class="copy-btn" onclick="copyLink('${invitationUrl}')">
+                            <i class="fas fa-copy"></i> Copy Link
+                        </button>
+                        <button class="delete-btn" onclick="deleteGuest(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                guestList.appendChild(guestItem);
+            });
+        }
+
+        // Menambah tamu baru
+        function addGuest() {
+            const guestName = document.getElementById('guestName').value.trim();
+            
+            if (!guestName) {
+                showAlert('Nama tamu tidak boleh kosong', 'error');
+                return;
+            }
+
+            guests.push({ name: guestName });
+            localStorage.setItem('guests', JSON.stringify(guests));
+            
+            document.getElementById('guestName').value = '';
+            displayGuests();
+            showAlert('Tamu berhasil ditambahkan', 'success');
+        }
+
+        // Menghapus tamu
+        function deleteGuest(index) {
+            if (confirm('Apakah Anda yakin ingin menghapus tamu ini?')) {
+                guests.splice(index, 1);
+                localStorage.setItem('guests', JSON.stringify(guests));
+                displayGuests();
+                showAlert('Tamu berhasil dihapus', 'success');
+            }
+        }
+
+        // Copy link undangan
+        function copyLink(url) {
+            navigator.clipboard.writeText(url).then(() => {
+                showAlert('Link berhasil disalin', 'success');
+            }).catch(() => {
+                showAlert('Gagal menyalin link', 'error');
+            });
+        }
+
+        // Menampilkan alert
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = `alert alert-${type}`;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+
+        // Menampilkan daftar tamu saat halaman dimuat
+        displayGuests();
+    </script>
+</body>
+</html> 
